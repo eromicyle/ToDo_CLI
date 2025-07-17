@@ -1,0 +1,6 @@
+DoIt|Do the right thing|1
+Hello|This is my hello task|1
+Bye|This is my Bye Task|0
+Sleep|Sleep for atleast 8 hours |1
+This Task|This is my first task|0
+

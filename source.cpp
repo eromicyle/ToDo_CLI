@@ -19,41 +19,31 @@ public:
     {
     }
 
-    string getName() const {
-        return taskName;
-    }
-    string getDescription() const {
-        return taskDescription;
-    }
-    bool isComplete() const {
-        return completed;
-    }
+    string getName()        const { return taskName; }
+    string getDescription() const { return taskDescription; }
+    bool   isComplete()     const { return completed; }
 
-    void setName(const string& taskName) {
-        this->taskName = taskName;
-    }
-    void setDescription(const string& taskDescription) {
-        this->taskDescription = taskDescription;
-    }
-    void markCompleted(bool comPen) {
-        completed = comPen;
-    }
+    void setName(const string& name)        { taskName = name; }
+    void setDescription(const string& desc) { taskDescription = desc; }
+    void markCompleted(bool value)          { completed = value; }
 
     void displayTask() const;
 };
 
 class ToDoList {
 private:
-    char userInput = '0';
-    int taskNumber = 0;
     vector<Task> tasks;
+
+    int readTaskNumber(int min, int max) const;
+    void markTask(bool markAsCompleted);
+    void printTaskList(bool showStatus = false) const;
+
 public:
     void displayMenu();
     void addTask();
     void deleteTask();
     void editTask();
-    void markTaskCompleted();
-    void markTaskPending();
+    void toggleTaskStatus();
     void displayTasks();
     void runProgram();
     void saveTasksToFile();
@@ -62,16 +52,13 @@ public:
 
 int main() {
     enableANSIColors();
-
     clrscr();
     cout << endl;
 
-    setColor(9); // Light Blue
+    setColor(9);
     typewriter("Welcome To The To-Do CLI App...", 45);
-
-    setColor(7); // Reset to default (White)
+    setColor(7);
     typewriter("Starting...", 35);
-
     pause(450);
 
     ToDoList toDoList;
@@ -82,346 +69,254 @@ int main() {
 }
 
 void Task::displayTask() const {
-    if (completed) {
-        setColor(10);
-    }
-    else {
-        setColor(12);
-    }
-    cout << taskName << " ("
-        << (completed ? "completed" : "pending")
-        << ")" << endl
-        << "Description: " << taskDescription << endl;
+    setColor(completed ? 10 : 12);
+    cout << taskName
+         << " (" << (completed ? "completed" : "pending") << ")\n"
+         << "Description: " << taskDescription << "\n";
+    setColor(7);
+}
 
+int ToDoList::readTaskNumber(int min, int max) const {
+    int number;
+    while (true) {
+        setColor(15);
+        cout << "Enter task number (" << min << " - " << max << ") :: ";
+        setColor(7);
+
+        if (cin >> number) {
+            if (number >= min && number <= max) return number;
+            setColor(4);
+            cout << "Out of range. Try again...\n";
+            setColor(7);
+        } else {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            setColor(4);
+            cout << "Invalid input. Enter a number.\n";
+            setColor(7);
+        }
+    }
+}
+
+void ToDoList::printTaskList(bool showStatus) const {
+    for (size_t i = 0; i < tasks.size(); ++i) {
+        if (showStatus) setColor(tasks[i].isComplete() ? 10 : 12);
+        cout << "Task " << i + 1 << ": " << tasks[i].getName();
+        if (showStatus)
+            cout << " [" << (tasks[i].isComplete() ? "completed" : "pending") << "]";
+        cout << "\n";
+    }
     setColor(7);
 }
 
 void ToDoList::displayMenu() {
-
     while (true) {
         clrscr();
-        cout << "================== Home ==================" << endl;
 
-        cout << endl;
-        cout << "1) Add Task." << endl;
-        cout << "2) Edit Task." << endl;
-        cout << "3) Delete Task." << endl;
-        cout << "4) Mark Task as Completed." << endl;
-        cout << "5) Mark Task as Pending." << endl;
-        cout << "6) Display all Tasks." << endl;
-        cout << "7) Exit." << endl;
+        size_t total = tasks.size();
+        size_t completed = 0;
+        for (const Task& t : tasks) if (t.isComplete()) ++completed;
+        size_t pending = total - completed;
+
         setColor(15);
-        cout << "Enter your Choice (1-7) :: ";
+        cout << "================== Home ==================\n";
+        setColor(7);
+        cout << " Tasks: " << total
+             << "  |  ";
+        setColor(10); cout << "Completed: " << completed;
+        setColor(7);  cout << "  |  ";
+        setColor(12); cout << "Pending: " << pending;
+        setColor(7);  cout << "\n";
+        setColor(15);
+        cout << "==========================================\n\n";
+        setColor(7);
+
+        cout << "1) Add Task\n";
+        cout << "2) Edit Task\n";
+        cout << "3) Delete Task\n";
+        cout << "4) Toggle Task Status (Completed / Pending)\n";
+        cout << "5) Display All Tasks\n";
+        cout << "6) Exit\n\n";
+
+        setColor(15);
+        cout << "Enter your Choice (1-6) :: ";
+        char userInput;
         cin >> userInput;
         setColor(7);
 
         switch (userInput) {
-        case '1': addTask(); break;
-        case '2': editTask(); break;
-        case '3': deleteTask(); break;
-        case '4': markTaskCompleted(); break;
-        case '5': markTaskPending(); break;
-        case '6': displayTasks(); break;
-        case '7':
-            cout << "Exiting Program..." << endl;
-            exit(0);
-            break;
+        case '1': addTask();          break;
+        case '2': editTask();         break;
+        case '3': deleteTask();       break;
+        case '4': toggleTaskStatus(); break;
+        case '5': displayTasks();     break;
+        case '6':
+            cout << "\nExiting Program...\n";
+            return;
         default:
-            cout << "Invalid Selection... Select option (1-6)... ";
-            continue;
+            setColor(4);
+            cout << "Invalid selection. Choose between 1 and 6.\n";
+            setColor(7);
+            pause(900);
         }
     }
 }
 
 void ToDoList::addTask() {
     clrscr();
-    cout << "================ Add Task ================" << endl << endl;
+    cout << "================ Add Task ================\n\n";
 
     string name, description;
 
-    setColor(11); // Light Aqua
+    setColor(11);
     cout << "\033[1mEnter the Task Name -> \033[0m";
     cin >> ws; getline(cin, name);
 
-    setColor(3); // Aqua
-    cout << endl << "\033[1mEnter the Description \n:> \033[0m";
+    setColor(3);
+    cout << "\n\033[1mEnter the Description\n:> \033[0m";
     cin >> ws; getline(cin, description);
-    setColor(7); // default
-    
+    setColor(7);
+
     tasks.emplace_back(name, description);
     saveTasksToFile();
+
     setColor(2);
-    cout << endl << "Task Added Successfully...";
+    cout << "\nTask added successfully.";
     setColor(7);
     cout << "\nPress Enter to continue...";
     cin.get();
 }
 
 void ToDoList::deleteTask() {
-    clrscr(); 
-    cout << "=============== Delete Task ==============" << endl << endl;
+    clrscr();
+    cout << "=============== Delete Task ==============\n\n";
 
     if (tasks.empty()) {
-        setColor(4);
-        cout << "No Task to delete... \nPress Enter to continue...";
-        setColor(7);
-        cin >> ws;
-        cin.get();
-
+        setColor(4); cout << "No tasks to delete.\n"; setColor(7);
+        cout << "Press Enter to continue...";
+        cin >> ws; cin.get();
         return;
     }
 
-    for (int i = 0; i < tasks.size(); ++i) {
-        cout << "Task " << i + 1 << " " << tasks[i].getName() << endl;
-    }
+    printTaskList(true);
+    cout << "\n";
 
-    while (true) {
-        setColor(15);
-        cout << "Enter the Task number you want to Delete \n(1 - " << tasks.size() << ") :: ";
-        cin >> taskNumber;
-        setColor(7);
+    int taskNumber = readTaskNumber(1, static_cast<int>(tasks.size()));
+    tasks.erase(tasks.begin() + taskNumber - 1);
+    saveTasksToFile();
 
-        if (taskNumber >= 1 && taskNumber <= tasks.size()) {
-            tasks.erase(tasks.begin() + taskNumber - 1);
-            saveTasksToFile();
-            setColor(2);
-            cout << "Task Deleted Successfully...";
-            setColor(7);
-            cout << "\nPress Enter to continue...";
-            cin >> ws;
-            cin.get();
-
-            break;
-        }
-        else {
-            setColor(4);
-            cout << "Invalid Input. Try again..." << endl;
-            setColor(7);
-        }
-    }
+    setColor(2); cout << "Task deleted successfully."; setColor(7);
+    cout << "\nPress Enter to continue...";
+    cin >> ws; cin.get();
 }
 
 void ToDoList::editTask() {
+    clrscr();
+    cout << "=============== Edit Task ================\n\n";
+
+    if (tasks.empty()) {
+        setColor(4); cout << "No tasks to edit.\n"; setColor(7);
+        cout << "Press Enter to continue...";
+        cin >> ws; cin.get();
+        return;
+    }
+
+    printTaskList(true);
+    cout << "\n";
+
+    int taskNumber = readTaskNumber(1, static_cast<int>(tasks.size()));
+    Task& task = tasks[taskNumber - 1];
+
     string name, description;
-    clrscr(); 
-    cout << "=============== Edit Task ================" << endl << endl;
+    setColor(13);
+    cout << "Enter new Task Name :: ";
+    cin >> ws; getline(cin, name);
 
-    if (tasks.empty()) {
-        setColor(4);
-        cout << "No Task to Edit... \nPress Enter to continue...";
-        setColor(7);
-        cin >> ws;
-        cin.get();
-
-        return;
-    }
-
-    for (int i = 0; i < tasks.size(); ++i) {
-        cout << "Task " << i + 1 << " " << tasks[i].getName() << endl;
-    }
-
-    while (true) {
-        setColor(15);
-        cout << "Enter the Task number you want to Edit \n(1 - " << tasks.size() << ") :: ";
-        cin >> taskNumber;
-        setColor(7);
-
-        if (taskNumber >= 1 && taskNumber <= tasks.size()) {
-            Task& task = tasks[taskNumber - 1];
-            setColor(13);
-            cout << "Enter New Task Name :: ";
-            cin >> ws; getline(cin, name);
-            setColor(5);
-            cout << "Enter New Task Description \n:> ";
-            cin >> ws; getline(cin, description);
-            setColor(7);
-
-            task.setName(name);
-            task.setDescription(description);
-            saveTasksToFile();
-
-            setColor(2);
-            cout << "Task updated successfully!";
-            setColor(7);
-            cout << "\nPress Enter to continue...";
-            cin >> ws;
-            cin.get();
-
-            break;
-        }
-        else {
-            setColor(4);
-            cout << "Invalid Input. Try again..." << endl;
-            setColor(7);
-        }
-    }
-}
-
-void ToDoList::markTaskCompleted() {
-    clrscr();
-    cout << "============== Marking Task ==============" << endl << endl;
-
-    if (tasks.empty()) {
-        setColor(4);
-        cout << "No Task to Mark as Completed...\nPress Enter to continue...";
-        setColor(7);
-        cin >> ws;
-        cin.get();
-        return;
-    }
-
-    for (size_t i = 0; i < tasks.size(); ++i) {
-        setColor(tasks[i].isComplete() ? 10 : 12);
-        cout << "Task " << i + 1 << " " << tasks[i].getName() << endl;
-    }
+    setColor(5);
+    cout << "Enter new Task Description\n:> ";
+    cin >> ws; getline(cin, description);
     setColor(7);
 
-    while (true) {
-        setColor(15);
-        cout << "\nEnter the Task number to mark as Completed (1 - "
-             << tasks.size() << ") :: ";
-        cin >> taskNumber;
-        setColor(7);
+    task.setName(name);
+    task.setDescription(description);
+    saveTasksToFile();
 
-        if (taskNumber < 1 || taskNumber > static_cast<int>(tasks.size())) {
-            setColor(4);
-            cout << "Invalid Selection. Try again...\n";
-            setColor(7);
-            continue;
-        }
-
-        Task& task = tasks[taskNumber - 1];
-
-        if (task.isComplete()) {
-            setColor(4);
-            cout << "Task is already completed. Choose another task.\n";
-            setColor(7);
-            continue;
-        }
-
-        task.markCompleted(true);
-        saveTasksToFile();
-
-        setColor(2);
-        cout << "Task marked as completed successfully!";
-        setColor(7);
-        cout << "\nPress Enter to continue...";
-        cin >> ws;
-        cin.get();
-        break;
-    }
+    setColor(2); cout << "Task updated successfully."; setColor(7);
+    cout << "\nPress Enter to continue...";
+    cin >> ws; cin.get();
 }
 
-void ToDoList::markTaskPending() {
+void ToDoList::toggleTaskStatus() {
     clrscr();
-    cout << "============== Marking Task ==============" << endl << endl;
+    cout << "============= Toggle Task Status =========\n\n";
 
     if (tasks.empty()) {
-        setColor(4);
-        cout << "No Task to Mark as Pending...\nPress Enter to continue...";
-        setColor(7);
-        cin >> ws;
-        cin.get();
+        setColor(4); cout << "No tasks available.\n"; setColor(7);
+        cout << "Press Enter to continue...";
+        cin >> ws; cin.get();
         return;
     }
 
-    for (size_t i = 0; i < tasks.size(); ++i) {
-        setColor(tasks[i].isComplete() ? 10 : 12);
-        cout << "Task " << i + 1 << " " << tasks[i].getName() << endl;
-    }
+    printTaskList(true);
+    cout << "\n";
+
+    int taskNumber = readTaskNumber(1, static_cast<int>(tasks.size()));
+    Task& task = tasks[taskNumber - 1];
+
+    bool nowCompleted = !task.isComplete();
+    task.markCompleted(nowCompleted);
+    saveTasksToFile();
+
+    setColor(2);
+    cout << "Task marked as " << (nowCompleted ? "completed" : "pending") << ".\n";
     setColor(7);
-
-    while (true) {
-        setColor(15);
-        cout << "\nEnter the Task number to mark as Pending (1 - "
-             << tasks.size() << ") :: ";
-        cin >> taskNumber;
-        setColor(7);
-
-        if (taskNumber < 1 || taskNumber > static_cast<int>(tasks.size())) {
-            setColor(4);
-            cout << "Invalid Selection. Try again...\n";
-            setColor(7);
-            continue;
-        }
-
-        Task& task = tasks[taskNumber - 1];
-
-        if (!task.isComplete()) {
-            setColor(4);
-            cout << "Task is already pending. Choose another task.\n";
-            setColor(7);
-            continue;
-        }
-
-        task.markCompleted(false);
-        saveTasksToFile();
-
-        setColor(2);
-        cout << "Task marked as pending successfully!";
-        setColor(7);
-        cout << "\nPress Enter to continue...";
-        cin >> ws;
-        cin.get();
-        break;
-    }
+    cout << "Press Enter to continue...";
+    cin >> ws; cin.get();
 }
 
 void ToDoList::displayTasks() {
-    clrscr(); 
-    cout << "============ Displaying Tasks ============" << endl << endl;
+    clrscr();
+    cout << "============ Displaying Tasks ============\n\n";
 
     if (tasks.empty()) {
-        setColor(4);
-        cout << "No Task to Display... \nPress Enter to continue...";
-        setColor(7);
-        cin >> ws;
-        cin.get();
-
+        setColor(4); cout << "No tasks to display.\n"; setColor(7);
+        cout << "Press Enter to continue...";
+        cin >> ws; cin.get();
         return;
     }
 
-    for (int i = 0; i < tasks.size(); ++i) {
+    for (size_t i = 0; i < tasks.size(); ++i) {
         cout << "Task " << i + 1 << ":\n";
         tasks[i].displayTask();
-        cout << "------------------------------------------\n";
-        cout << endl;
+        cout << "------------------------------------------\n\n";
     }
 
-    setColor(2);
-    cout << "All Tasks Displayed Successfully"; 
-    setColor(7);
+    setColor(2); cout << "All tasks displayed."; setColor(7);
     cout << "\nPress Enter to continue...";
-    cin >> ws;
-    cin.get();
-
+    cin >> ws; cin.get();
 }
 
-void ToDoList::runProgram() {
-    loadTasksFromFile();
-    displayMenu();
-}
+static const char DELIM = '\x01';
 
 void ToDoList::saveTasksToFile() {
     fstream taskFile("userTask.txt", ios::out | ios::trunc);
     if (!taskFile.is_open()) {
-        cerr << "Error: Could not open the file for writing..." << endl;
-        exit(1);
+        setColor(4);
+        cerr << "\nError: Could not open file for writing. Changes not saved.\n";
+        setColor(7);
+        return;
     }
     for (const Task& task : tasks) {
-        taskFile << task.getName() << "|"
-            << task.getDescription() << "|"
-            << task.isComplete() << endl;
+        taskFile << task.getName()        << DELIM
+                 << task.getDescription() << DELIM
+                 << task.isComplete()     << "\n";
     }
     taskFile.close();
 }
 
 void ToDoList::loadTasksFromFile() {
     ifstream taskFile("userTask.txt");
-    if (!taskFile.is_open()) {
-        //cerr << "Error: Could not open the file for reading..." << endl;
-        return;
-    }
+    if (!taskFile.is_open()) return;
 
     tasks.clear();
     string line;
@@ -429,23 +324,27 @@ void ToDoList::loadTasksFromFile() {
     while (getline(taskFile, line)) {
         if (line.empty()) continue;
 
-        size_t pos1 = line.find('|');
-        size_t pos2 = line.find('|', pos1 + 1);
+        size_t pos1 = line.find(DELIM);
+        size_t pos2 = line.find(DELIM, pos1 + 1);
 
         if (pos1 == string::npos || pos2 == string::npos) {
-            cerr << "Warning: Malformed line skipped." << endl;
+            cerr << "Warning: malformed line skipped.\n";
             continue;
         }
 
-        string name = line.substr(0, pos1);
+        string name        = line.substr(0, pos1);
         string description = line.substr(pos1 + 1, pos2 - pos1 - 1);
         string completedStr = line.substr(pos2 + 1);
 
         Task task(name, description);
         if (completedStr == "1") task.markCompleted(true);
-
         tasks.push_back(task);
     }
 
     taskFile.close();
+}
+
+void ToDoList::runProgram() {
+    loadTasksFromFile();
+    displayMenu();
 }

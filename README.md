@@ -1,4 +1,4 @@
-# 📝 ToDo_CLI - (C++)
+# 📝 ToDo_CLI
 
 **ToDo_CLI** is a **console-based To-Do list application** built in **C++**.
 It allows you to create, edit, delete, and manage tasks right from your terminal.
@@ -6,96 +6,115 @@ The project uses **colored console output** and **typewriter effects** for a mor
 
 ---
 
-## 📂 Folder Structure
+## ⚙️ Features
+
+- **Add** tasks with a name and description
+- **Edit** any existing task
+- **Delete** tasks by number
+- **Toggle** status between *completed* and *pending* in one step
+- **Display** all tasks with color-coded status
+- **Live summary** on the home screen — total / completed / pending at a glance
+- **Persistent storage** — tasks are saved to `userTask.txt` automatically
+- **Cross-platform color support** — ANSI on Linux/macOS & Windows 10+; WinAPI fallback for older Windows
+
+---
+
+## 📂 Project Structure
 
 ``` graphql
 ToDo_CLI/
-├── conslmanip.h       # Custom console utilities (colors, clear screen, etc.)
-├── source.cpp          # Main application source code
-├── userTask.txt        # Task storage (persistent data)
-└── README.md           # Project documentation
+├── source.cpp        # Main application logic
+├── conslmanip.h      # Cross-platform console utilities (colors, typewriter, clear)
+├── CMakeLists.txt    # CMake build configuration
+└── README.md         # Project documentation
 ```
 
 ---
 
-## ⚙️ Features
+## 🔧 Requirements
 
-* ✅ Add new tasks with description
-* ✏️ Edit existing tasks
-* ❌ Delete tasks
-* ✅ Mark tasks as **completed** or **pending**
-* 📋 View all tasks with color-coded status
-* 💾 Persistent task storage in `userTask.txt`
-* 🎨 ANSI color output (cross-platform)
-* ⌨️ Typewriter text effect for UI animations
+| Requirement  | Minimum Version |
+| ------------ | --------------- |
+| C++ Standard | C++17           |
+| CMake        | 3.15            |
+| Compiler     | GCC 8+, Clang7+ |
 
 ---
 
-## 🚀 How to Run
+## 🚀 Building
 
-### **Build**
-
-#### Linux / MacOS:
+### Using CMake (recommended)
 
 ```bash
-g++ source.cpp -o ToDo_CLI
-./ToDo_CLI
+# 1. Clone the repository
+git clone https://github.com/eromicyle/ToDo_CLI.git
+cd ToDo-CLI
+
+# 2. Configure
+cmake -B build
+
+# 3. Build
+cmake --build build
+
+# 4. Run
+./build/TodoCLI          # Linux / macOS
+build\Debug\TodoCLI.exe  # Windows
 ```
 
-#### Windows (MinGW):
+### Manual (g++)
 
 ```bash
-g++ source.cpp -o ToDo_CLI.exe
-ToDo_CLI.exe
+g++ -std=c++17 -O2 -o TodoCLI source.cpp
+./TodoCLI
 ```
+
+---
+
+## 🖥️ Platform Notes
+
+| Platform                                          | Color Support                             | Clear Screen                                 |
+| ------------------------------------------------- | ----------------------------------------- | -------------------------------------------- |
+| Linux / macOS                                     | ANSI escape codes                         | ANSI escape codes                            |
+| Windows 10+ (cmd / PowerShell / Windows Terminal) | ANSI via Virtual Terminal Processing      | ANSI via VTP                                 |
+| Windows (older cmd.exe, pre-Win10)                | WinAPI `SetConsoleTextAttribute` fallback | WinAPI `FillConsoleOutputCharacter` fallback |
 
 ---
 
 ## 💾 Data Storage
 
-All tasks are stored in a simple text file:
+Tasks are saved to **`userTask.txt`** in the working directory using `\x01` (ASCII Unit Separator) as a field delimiter, so task names and descriptions can safely contain any printable character including `|`, commas, and quotes.
 
-```
-userTask.txt
-```
+File format (one task per line):
 
-Format:
-
-```
-taskName|taskDescription|completedFlag
-```
-
-Example:
-
-```
-Buy Groceries|Buy fruits and vegetables|0
-Complete Project|Finish ToDo CLI App|1
+```bash
+name\x01description\x010_or_1
 ```
 
 ---
 
 ## 🖥️ Console Output Preview
 
-Example task display:
+``` txt
+================== Home ==================
+ Tasks: 4  |  Completed: 2  |  Pending: 2
+==========================================
 
-```
-Task 1: 
-Buy Groceries (pending)
-Description: Buy fruits and vegetables
-------------------------------------------
+1) Add Task
+2) Edit Task
+3) Delete Task
+4) Toggle Task Status (Completed / Pending)
+5) Display All Tasks
+6) Exit
 
-Task 2: 
-Complete Project (completed)
-Description: Finish ToDo CLI App
-------------------------------------------
+Enter your Choice (1-6) ::
 ```
 
 ---
 
 ## 🗓️ Project Status
 
-| Feature                         | Status |
-| ------------------------------- | ------ |
+| Feature                         | Status  |
+| ------------------------------- | ------- |
 | Basic Task Management           | ✅ Done |
 | Persistent File Storage         | ✅ Done |
 | Colored CLI & Typewriter Effect | ✅ Done |
@@ -110,13 +129,5 @@ Description: Finish ToDo CLI App
 ---
 
 ### ⭐ *If you find this project useful, consider starring the repository!*
-
----
-
-### Badges
-![Build](https://img.shields.io/badge/build-passing-brightgreen)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue)
-![Language](https://img.shields.io/badge/C%2B%2B-17-blueviolet)
-![Status](https://img.shields.io/badge/status-Completed-success)
 
 ---

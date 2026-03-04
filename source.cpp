@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <limits>
 
 #include "conslmanip.h"
 
@@ -136,7 +137,7 @@ void ToDoList::displayMenu() {
         cout << "3) Delete Task\n";
         cout << "4) Toggle Task Status (Completed / Pending)\n";
         cout << "5) Display All Tasks\n";
-        cout << "6) Exit\n\n";
+        cout << "0) Exit\n\n";
 
         setColor(15);
         cout << "Enter your Choice (1-6) :: ";
@@ -150,7 +151,7 @@ void ToDoList::displayMenu() {
         case '3': deleteTask();       break;
         case '4': toggleTaskStatus(); break;
         case '5': displayTasks();     break;
-        case '6':
+        case '0':
             cout << "\nExiting Program...\n";
             return;
         default:

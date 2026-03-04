@@ -140,7 +140,7 @@ void ToDoList::displayMenu() {
         cout << "0) Exit\n\n";
 
         setColor(15);
-        cout << "Enter your Choice (1-6) :: ";
+        cout << "Enter your Choice (1-5) :: ";
         char userInput;
         cin >> userInput;
         setColor(7);
